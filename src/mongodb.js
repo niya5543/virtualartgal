@@ -1,3 +1,4 @@
+// mongodb.js
 const mongoose = require("mongoose");
 
 mongoose.connect("mongodb://localhost:27017/artgallery")
@@ -8,7 +9,22 @@ mongoose.connect("mongodb://localhost:27017/artgallery")
         console.log("failed to connect");
     });
 
-const LogInSchema = new mongoose.Schema({
+const RegistrationSchema = new mongoose.Schema({
+    email: {
+        type: String,
+        required: true
+    },
+    password: {
+        type: String,
+        required: true
+    },
+    confirmPassword: {
+        type: String,
+        required: true
+    }
+});
+
+const LoginSchema = new mongoose.Schema({
     email: {
         type: String,
         required: true
@@ -19,17 +35,7 @@ const LogInSchema = new mongoose.Schema({
     }
 });
 
-const collection = mongoose.model("login_cust", LogInSchema);
+const Registration = mongoose.model("reg_custs", RegistrationSchema);
+const Login = mongoose.model("login_custs", LoginSchema);
 
-async function insertData() {
-    try {
-        const data = { email: 'example@example.com', password: 'password' };
-        await collection.insertOne(data);
-        console.log("Data inserted successfully");
-    } catch (error) {
-        console.error("Error inserting data into MongoDB:", error);
-        // Handle the error appropriately, such as retrying the operation or displaying an error message
-    }
-}
-
-module.exports = collection;
+module.exports = { Registration, Login };

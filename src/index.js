@@ -1,8 +1,7 @@
 const express = require('express');
 const app = express();
 const path = require("path");
-const hbs = require("hbs");
-const collection = require("./mongodb");
+const { Registration, Login } = require("./mongodb");
 
 const templatePath = path.join(__dirname, '../templates');
 
@@ -26,31 +25,47 @@ app.get("/login", (req, res) => {
 
 // Route to handle login form submission
 app.post("/login", async (req, res) => {
-    console.log("Request Body:", req.body); // Check the entire request body
-    const { email, password } = req.body; // Ensure correct extraction
-    console.log("Extracted Email:", email); // Log the extracted email
-    console.log("Extracted Password:", password); // Log the extracted password
-    // Further processing...
+    try {
+        const { email, password } = req.body;
+        const user = await Registration.findOne({ email, password });
+        if (user) {
+            res.render("index");
+        } else {
+            res.send("Wrong email or password");
+        }
+    } catch (error) {
+        console.error("Error logging in:", error);
+        res.send("An unexpected error occurred. Please try again later.");
+    }
 });
-
 
 // Route to render the signup page
 app.get("/signup", (req, res) => {
+    console.log("GET SIGN UP"); 
     res.render("reg_cust");
 });
 
 // Route to handle signup form submission
 app.post("/signup", async (req, res) => {
-    const { email, password } = req.body;
-    const data = { email, password };
+    const { email, password, confirmPassword } = req.body;
+    if (password !== confirmPassword) {
+        return res.render("reg_cust", { errorMessage: "Passwords do not match" });
+    }
     try {
-        await collection.insertMany([data]); // Insert user data into the database
+        await Registration.create({ email, password, confirmPassword });
         console.log("Data inserted successfully");
-        res.redirect("/login"); // Redirect to login page after signup
+        res.render("login_cust"); // Render the login page after signup
     } catch (error) {
         console.error("Error inserting data into MongoDB:", error);
+        // Handle the error appropriately
         res.render("reg_cust", { errorMessage: "An unexpected error occurred. Please try again later." });
     }
+});
+
+// Route to render the create exhibition page
+app.get("/create_exhibition", (req, res) => {
+    console.log("hi")
+    res.render("create_exhibition"); // Assuming "create_exhibition.hbs" is in your templates directory
 });
 
 app.listen(3000, () => {
